@@ -1,0 +1,237 @@
+--[[ phatvip Menu + Drag Mobile + GodMode + Anti-Ban ]]
+local StarterGui = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local UserInputService = game:GetService("UserInputService")
+local lp = Players.LocalPlayer
+
+-- 1. HIỂN THỊ LOADING "HẢI ĐĂNG NGU" (3 giây)
+local function ShowLoading()
+    pcall(function()
+        if CoreGui:FindFirstChild("HaiDangNgu_UI") then CoreGui.HaiDangNgu_UI:Destroy() end
+    end)
+
+    local SG = Instance.new("ScreenGui")
+    SG.Name = "HaiDangNgu_UI"
+    SG.ResetOnSpawn = false
+    SG.IgnoreGuiInset = true
+    SG.Parent = CoreGui
+
+    local BG = Instance.new("Frame")
+    BG.Size = UDim2.new(1, 0, 1, 0)
+    BG.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    BG.BorderSizePixel = 0
+    BG.Parent = SG
+
+    local NameLabel = Instance.new("TextLabel")
+    NameLabel.Size = UDim2.new(1, 0, 0, 50)
+    NameLabel.Position = UDim2.new(0, 0, 0.35, -50)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = "👑 TẤN PHÁT 👑"
+    NameLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+    NameLabel.Font = Enum.Font.GothamBlack
+    NameLabel.TextSize = 28
+    NameLabel.TextTransparency = 1
+    NameLabel.Parent = BG
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 60)
+    Title.Position = UDim2.new(0, 0, 0.4, -40)
+    Title.BackgroundTransparency = 1
+    Title.Text = "HẢI ĐĂNG NGU"
+    Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+    Title.Font = Enum.Font.GothamBlack
+    Title.TextSize = 32
+    Title.TextTransparency = 1
+    Title.Parent = BG
+
+    local BarBG = Instance.new("Frame")
+    BarBG.Size = UDim2.new(0, 300, 0, 6)
+    BarBG.Position = UDim2.new(0.5, -150, 0.5, 20)
+    BarBG.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    BarBG.BorderSizePixel = 0
+    BarBG.Parent = BG
+    Instance.new("UICorner", BarBG).CornerRadius = UDim.new(1, 0)
+
+    local BarFill = Instance.new("Frame")
+    BarFill.Size = UDim2.new(0, 0, 1, 0)
+    BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    BarFill.BorderSizePixel = 0
+    BarFill.Parent = BarBG
+    Instance.new("UICorner", BarFill).CornerRadius = UDim.new(1, 0)
+
+    local Status = Instance.new("TextLabel")
+    Status.Size = UDim2.new(1, 0, 0, 20)
+    Status.Position = UDim2.new(0, 0, 0.5, 40)
+    Status.BackgroundTransparency = 1
+    Status.Text = "Đang tải..."
+    Status.TextColor3 = Color3.fromRGB(150, 150, 160)
+    Status.Font = Enum.Font.Gotham
+    Status.TextSize = 14
+    Status.TextTransparency = 1
+    Status.Parent = BG
+
+    TweenService:Create(NameLabel, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+    TweenService:Create(Title, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+    TweenService:Create(Status, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+
+    return SG, BarFill, Status
+end
+
+local LoadingGUI, LBar, LStatus = ShowLoading()
+for i = 1, 10 do
+    LBar.Size = UDim2.new(i / 10, 0, 1, 0)
+    LStatus.Text = "Đang tải... " .. (i * 10) .. "%"
+    task.wait(0.25)
+end
+LStatus.Text = "Hoàn tất! 100%"
+LStatus.TextColor3 = Color3.fromRGB(0, 255, 100)
+task.wait(3)
+if LoadingGUI then LoadingGUI:Destroy() end
+
+-- 2. TẠO MENU RIÊNG "PHATVIP" (CÓ THỂ KÉO THẢ)
+local MenuGui = Instance.new("ScreenGui")
+MenuGui.Name = "phatvip_Menu"
+MenuGui.ResetOnSpawn = false
+MenuGui.Parent = CoreGui
+
+local Main = Instance.new("Frame")
+Main.Size = UDim2.new(0, 250, 0, 160)
+Main.Position = UDim2.new(0, 20, 0.3, 0)
+Main.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+Main.BorderSizePixel = 0
+Main.Active = true -- Bắt buộc phải bật để kéo thả
+Main.Parent = MenuGui
+Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 8)
+Instance.new("UIStroke", Main).Color = Color3.fromRGB(170, 0, 255)
+
+-- Thanh Tiêu Đề (Nơi để kéo)
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 30)
+Title.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+Title.Text = "👑 PHATVIP MENU (Giữ & Kéo)"
+Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 12
+Title.Parent = Main
+Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 8)
+
+-- Logic Kéo Thả Mobile
+local dragging, dragInput, dragStart, startPos
+Title.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = Main.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+Title.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+-- Các nút chức năng
+local GodBtn = Instance.new("TextButton")
+GodBtn.Size = UDim2.new(0, 210, 0, 35)
+GodBtn.Position = UDim2.new(0, 20, 0, 45)
+GodBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+GodBtn.Text = "Bật Bất Tử (God Mode)"
+GodBtn.TextColor3 = Color3.new(1,1,1)
+GodBtn.Font = Enum.Font.GothamBold
+GodBtn.TextSize = 12
+GodBtn.Parent = Main
+Instance.new("UICorner", GodBtn).CornerRadius = UDim.new(0, 6)
+
+local AntiBanBtn = Instance.new("TextButton")
+AntiBanBtn.Size = UDim2.new(0, 210, 0, 35)
+AntiBanBtn.Position = UDim2.new(0, 20, 0, 90)
+AntiBanBtn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+AntiBanBtn.Text = "Bật Anti-Ban"
+AntiBanBtn.TextColor3 = Color3.new(1,1,1)
+AntiBanBtn.Font = Enum.Font.GothamBold
+AntiBanBtn.TextSize = 12
+AntiBanBtn.Parent = Main
+Instance.new("UICorner", AntiBanBtn).CornerRadius = UDim.new(0, 6)
+
+local GodMode_State = false
+local AntiBan_State = false
+
+GodBtn.MouseButton1Click:Connect(function()
+    GodMode_State = not GodMode_State
+    GodBtn.Text = GodMode_State and "Tắt Bất Tử" or "Bật Bất Tử (God Mode)"
+    GodBtn.BackgroundColor3 = GodMode_State and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 60)
+end)
+
+AntiBanBtn.MouseButton1Click:Connect(function()
+    AntiBan_State = not AntiBan_State
+    AntiBanBtn.Text = AntiBan_State and "Tắt Anti-Ban" or "Bật Anti-Ban"
+    AntiBanBtn.BackgroundColor3 = AntiBan_State and Color3.fromRGB(0, 200, 100) or Color3.fromRGB(50, 50, 60)
+end)
+
+-- ==========================================
+-- 3. LOGIC BẤT TỬ THÔNG MINH
+-- ==========================================
+task.spawn(function()
+    while task.wait(0.2) do
+        if GodMode_State and lp.Character then
+            local hum = lp.Character:FindFirstChildOfClass("Humanoid")
+            if hum then
+                if hum.Health < hum.MaxHealth * 0.5 then
+                    hum.Health = hum.MaxHealth
+                end
+            end
+        end
+    end
+end)
+
+-- ==========================================
+-- 4. LOGIC ANTI-BAN
+-- ==========================================
+local oldKick
+oldKick = hookfunction(lp.Kick, function(self, msg)
+    if AntiBan_State then
+        StarterGui:SetCore("SendNotification", {Title = "Anti-Ban", Text = "Đã chặn lệnh Kick: " .. tostring(msg), Duration = 5})
+        return
+    else
+        return oldKick(self, msg)
+    end
+end)
+
+-- ==========================================
+-- 5. BỘ LOADER STARCROW (Chạy ngầm)
+-- ==========================================
+if getgenv().phatvip_StarCrowRan then return end
+getgenv().phatvip_StarCrowRan = true
+
+local pid = game.PlaceId
+local games = {
+    {places = {2474168535}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/West%20Bound"},
+    {places = {18286009370}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Gun%20Tycoon"},
+    {places = {89744231770777}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Dead%20Spells"},
+    {places = {117311404196294, 99088826116845}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Runaways"},
+    {places = {108567435288296, 105692919293481, 106921982724621}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Anime%20Ability%20Arena"},
+    {places = {6490016198}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Slayer%20Tycoon"},
+    {places = {98502499119821}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Heavyweigh%20Fishing"}
+}
+
+for _, g in ipairs(games) do
+    if table.find(g.places, pid) then
+        local raw = game:HttpGet(g.url)
+        local fixed = string.gsub(raw, "StarCrow Hub", "phatvip")
+        loadstring(fixed)()
+        break
+    end
+end
