@@ -1,0 +1,204 @@
+--[[ phatvip + StarCrow Hub + God Mode + Loading ]]
+local StarterGui = game:GetService("StarterGui")
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local lp = Players.LocalPlayer
+
+-- 1. HIỂN THỊ LOADING "HẢI ĐĂNG NGU" (3 giây)
+local function ShowLoading()
+    pcall(function()
+        if CoreGui:FindFirstChild("HaiDangNgu_UI") then CoreGui.HaiDangNgu_UI:Destroy() end
+    end)
+
+    local SG = Instance.new("ScreenGui")
+    SG.Name = "HaiDangNgu_UI"
+    SG.ResetOnSpawn = false
+    SG.IgnoreGuiInset = true
+    SG.Parent = CoreGui
+
+    local BG = Instance.new("Frame")
+    BG.Size = UDim2.new(1, 0, 1, 0)
+    BG.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    BG.BorderSizePixel = 0
+    BG.Parent = SG
+
+    local NameLabel = Instance.new("TextLabel")
+    NameLabel.Size = UDim2.new(1, 0, 0, 50)
+    NameLabel.Position = UDim2.new(0, 0, 0.35, -50)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text = "👑 TẤN PHÁT 👑"
+    NameLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+    NameLabel.Font = Enum.Font.GothamBlack
+    NameLabel.TextSize = 28
+    NameLabel.TextTransparency = 1
+    NameLabel.Parent = BG
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 60)
+    Title.Position = UDim2.new(0, 0, 0.4, -40)
+    Title.BackgroundTransparency = 1
+    Title.Text = "HẢI ĐĂNG NGU"
+    Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+    Title.Font = Enum.Font.GothamBlack
+    Title.TextSize = 32
+    Title.TextTransparency = 1
+    Title.Parent = BG
+
+    local BarBG = Instance.new("Frame")
+    BarBG.Size = UDim2.new(0, 300, 0, 6)
+    BarBG.Position = UDim2.new(0.5, -150, 0.5, 20)
+    BarBG.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+    BarBG.BorderSizePixel = 0
+    BarBG.Parent = BG
+    Instance.new("UICorner", BarBG).CornerRadius = UDim.new(1, 0)
+
+    local BarFill = Instance.new("Frame")
+    BarFill.Size = UDim2.new(0, 0, 1, 0)
+    BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+    BarFill.BorderSizePixel = 0
+    BarFill.Parent = BarBG
+    Instance.new("UICorner", BarFill).CornerRadius = UDim.new(1, 0)
+
+    local Status = Instance.new("TextLabel")
+    Status.Size = UDim2.new(1, 0, 0, 20)
+    Status.Position = UDim2.new(0, 0, 0.5, 40)
+    Status.BackgroundTransparency = 1
+    Status.Text = "Đang tải..."
+    Status.TextColor3 = Color3.fromRGB(150, 150, 160)
+    Status.Font = Enum.Font.Gotham
+    Status.TextSize = 14
+    Status.TextTransparency = 1
+    Status.Parent = BG
+
+    TweenService:Create(NameLabel, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+    TweenService:Create(Title, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+    TweenService:Create(Status, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+
+    task.spawn(function()
+        while NameLabel.Parent do
+            TweenService:Create(NameLabel, TweenInfo.new(0.8), {TextColor3 = Color3.fromRGB(255, 255, 150)}):Play()
+            task.wait(0.8)
+            if not NameLabel.Parent then break end
+            TweenService:Create(NameLabel, TweenInfo.new(0.8), {TextColor3 = Color3.fromRGB(255, 215, 0)}):Play()
+            task.wait(0.8)
+        end
+    end)
+
+    return SG, BarFill, Status
+end
+
+local LoadingGUI, LBar, LStatus = ShowLoading()
+for i = 1, 10 do
+    LBar.Size = UDim2.new(i / 10, 0, 1, 0)
+    LStatus.Text = "Đang tải... " .. (i * 10) .. "%"
+    task.wait(0.25)
+end
+LStatus.Text = "Hoàn tất! 100%"
+LStatus.TextColor3 = Color3.fromRGB(0, 255, 100)
+task.wait(3)
+
+if LoadingGUI then
+    local bg = LoadingGUI:FindFirstChild("Frame")
+    if bg then
+        for _, v in ipairs(bg:GetDescendants()) do
+            if v:IsA("Frame") then TweenService:Create(v, TweenInfo.new(0.5), {BackgroundTransparency = 1}):Play()
+            elseif v:IsA("TextLabel") then TweenService:Create(v, TweenInfo.new(0.5), {TextTransparency = 1}):Play() end
+        end
+        task.wait(0.6)
+        LoadingGUI:Destroy()
+    end
+end
+
+-- 2. CHỐNG CHẠY TRÙNG LẶP
+if getgenv().phatvip_LoaderRan then
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "phatvip",
+            Text = "Script đã được chạy rồi!",
+            Duration = 3
+        })
+    end)
+    return
+end
+getgenv().phatvip_LoaderRan = true
+
+-- 3. MODULE BẤT TỬ (GOD MODE)
+getgenv().GodModeEnabled = true
+task.spawn(function()
+    while getgenv().GodModeEnabled do
+        task.wait(0.5)
+        local char = lp.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                local isFishing = false
+                local isFighting = false
+                
+                for _, tool in ipairs(char:GetChildren()) do
+                    if tool:IsA("Tool") and (tool.Name:lower():find("rod") or tool.Name:lower():find("fishing")) then
+                        isFishing = true
+                        break
+                    end
+                end
+                
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    for _, v in ipairs(workspace:GetDescendants()) do
+                        if v:IsA("Model") and v:FindFirstChild("Humanoid") and v.Humanoid.Health > 0 and v ~= char then
+                            local vHrp = v:FindFirstChild("HumanoidRootPart")
+                            if vHrp and (vHrp.Position - hrp.Position).Magnitude < 100 then
+                                isFighting = true
+                                break
+                            end
+                        end
+                    end
+                end
+                
+                if isFishing or isFighting then
+                    hum.Health = hum.MaxHealth
+                    hum.MaxHealth = math.huge
+                else
+                    if hum.MaxHealth == math.huge then
+                        hum.MaxHealth = 100
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 4. BỘ LOADER GỐC (Sửa tên Menu thành phatvip)
+local pid = game.PlaceId
+local games = {
+    {places = {2474168535}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/West%20Bound"},
+    {places = {18286009370}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Gun%20Tycoon"},
+    {places = {89744231770777}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Dead%20Spells"},
+    {places = {117311404196294, 99088826116845}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Runaways"},
+    {places = {108567435288296, 105692919293481, 106921982724621}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Anime%20Ability%20Arena"},
+    {places = {6490016198}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Slayer%20Tycoon"},
+    {places = {98502499119821}, url = "https://raw.githubusercontent.com/NoahTyrant/StarCrow/refs/heads/main/Heavyweigh%20Fishing"}
+}
+local lobbyIds = {104770044244450, 118418618261207}
+
+if table.find(lobbyIds, pid) then
+    lp:Kick("Không được chạy trong Lobby")
+    return
+end
+
+for _, g in ipairs(games) do
+    if table.find(g.places, pid) then
+        -- Tải script gốc
+        local rawCode = game:HttpGet(g.url)
+        
+        -- Tự động thay thế tên "StarCrow Hub" thành "phatvip" trong code
+        local modifiedCode = string.gsub(rawCode, "StarCrow Hub", "phatvip")
+        modifiedCode = string.gsub(modifiedCode, "StarCrow", "phatvip")
+        
+        -- Chạy code đã sửa
+        loadstring(modifiedCode)()
+        return
+    end
+end
+
+lp:Kick("Game không được hỗ trợ")
