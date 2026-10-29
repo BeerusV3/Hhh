@@ -1,0 +1,89 @@
+--[[ Hải Đăng Ngu - Loading GUI ]]
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+
+pcall(function()
+    if CoreGui:FindFirstChild("HaiDangNgu_UI") then
+        CoreGui.HaiDangNgu_UI:Destroy()
+    end
+end)
+
+local SG = Instance.new("ScreenGui")
+SG.Name = "HaiDangNgu_UI"
+SG.ResetOnSpawn = false
+SG.IgnoreGuiInset = true
+SG.Parent = CoreGui
+
+-- Nền đen
+local BG = Instance.new("Frame")
+BG.Size = UDim2.new(1, 0, 1, 0)
+BG.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+BG.BorderSizePixel = 0
+BG.Parent = SG
+
+-- Chữ Loading
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 60)
+Title.Position = UDim2.new(0, 0, 0.4, -40)
+Title.BackgroundTransparency = 1
+Title.Text = "HẢI ĐĂNG NGU"
+Title.TextColor3 = Color3.fromRGB(0, 255, 255)
+Title.Font = Enum.Font.GothamBlack
+Title.TextSize = 32
+Title.TextTransparency = 1
+Title.Parent = BG
+
+-- Thanh Loading
+local BarBG = Instance.new("Frame")
+BarBG.Size = UDim2.new(0, 300, 0, 6)
+BarBG.Position = UDim2.new(0.5, -150, 0.5, 20)
+BarBG.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+BarBG.BorderSizePixel = 0
+BarBG.Parent = BG
+Instance.new("UICorner", BarBG).CornerRadius = UDim.new(1, 0)
+
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBG
+Instance.new("UICorner", BarFill).CornerRadius = UDim.new(1, 0)
+
+-- Chữ trạng thái
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, 0, 0, 20)
+Status.Position = UDim2.new(0, 0, 0.5, 40)
+Status.BackgroundTransparency = 1
+Status.Text = "Đang tải..."
+Status.TextColor3 = Color3.fromRGB(150, 150, 160)
+Status.Font = Enum.Font.Gotham
+Status.TextSize = 14
+Status.TextTransparency = 1
+Status.Parent = BG
+
+-- Hiệu ứng chạy
+TweenService:Create(Title, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+TweenService:Create(Status, TweenInfo.new(0.5), {TextTransparency = 0}):Play()
+
+task.spawn(function()
+    for i = 1, 10 do
+        BarFill.Size = UDim2.new(i / 10, 0, 1, 0)
+        Status.Text = "Đang tải... " .. (i * 10) .. "%"
+        task.wait(0.15)
+    end
+    Status.Text = "Hoàn tất!"
+    Status.TextColor3 = Color3.fromRGB(0, 255, 100)
+    task.wait(0.8)
+    
+    -- Hiệu ứng mờ dần
+    local Fade = TweenService:Create(BG, TweenInfo.new(0.8), {BackgroundTransparency = 1})
+    local FadeT = TweenService:Create(Title, TweenInfo.new(0.8), {TextTransparency = 1})
+    local FadeS = TweenService:Create(Status, TweenInfo.new(0.8), {TextTransparency = 1})
+    local FadeBB = TweenService:Create(BarBG, TweenInfo.new(0.8), {BackgroundTransparency = 1})
+    local FadeBF = TweenService:Create(BarFill, TweenInfo.new(0.8), {BackgroundTransparency = 1})
+    
+    Fade:Play(); FadeT:Play(); FadeS:Play(); FadeBB:Play(); FadeBF:Play()
+    
+    task.wait(1)
+    SG:Destroy()
+end)
